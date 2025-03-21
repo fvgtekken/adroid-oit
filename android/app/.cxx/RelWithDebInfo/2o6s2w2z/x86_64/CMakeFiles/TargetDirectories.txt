@@ -1,0 +1,3 @@
+/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/RelWithDebInfo/2o6s2w2z/x86_64/CMakeFiles/appmodules.dir
+/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/RelWithDebInfo/2o6s2w2z/x86_64/CMakeFiles/edit_cache.dir
+/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/RelWithDebInfo/2o6s2w2z/x86_64/CMakeFiles/rebuild_cache.dir

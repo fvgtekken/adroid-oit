@@ -1,0 +1,5 @@
+# ninja log v5
+1	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/RelWithDebInfo/2o6s2w2z/x86_64/CMakeFiles/cmake.verify_globs	c20cf3cdb46bf26a
+0	1643	1742068137574372928	CMakeFiles/appmodules.dir/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	82539c3f43fcbd24
+1	1853	1742068137782340760	CMakeFiles/appmodules.dir/OnLoad.cpp.o	d97727482cea5b8a
+1853	1871	1742068137811336275	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/build/intermediates/cxx/RelWithDebInfo/2o6s2w2z/obj/x86_64/libappmodules.so	140ee4d1fbdaa9f9

@@ -1,0 +1,23 @@
+# ninja log v5
+1872	1897	1742053664623214906	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/build/intermediates/cxx/Debug/6w1py2v5/obj/x86_64/libappmodules.so	4479f1fa3bba9c30
+3	17	1742067683467519242	build.ninja	9cbccd75e4bbb085
+0	2	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	1686	1742053664403224642	CMakeFiles/appmodules.dir/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	684c957af1cb7b60
+0	1872	1742053664587216499	CMakeFiles/appmodules.dir/OnLoad.cpp.o	570189e8febcde5d
+0	2	0	clean	f7b598e3ba303605
+0	2	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+4	1690	1742067685173824772	CMakeFiles/appmodules.dir/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	684c957af1cb7b60
+4	1849	1742067685332031089	CMakeFiles/appmodules.dir/OnLoad.cpp.o	570189e8febcde5d
+1849	1874	1742067685369079404	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/build/intermediates/cxx/Debug/6w1py2v5/obj/x86_64/libappmodules.so	4479f1fa3bba9c30
+0	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	4	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	2	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	2	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	3	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	2	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
+0	2	0	/media/federico/Work123/Projects/NTTDATA/Adroid-cert/myApp/android/app/.cxx/Debug/6w1py2v5/x86_64/CMakeFiles/cmake.verify_globs	82d2b8c44946389e
