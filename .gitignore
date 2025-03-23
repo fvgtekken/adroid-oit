@@ -5,32 +5,43 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
-# React Native
+# React Native & Expo
 .expo/
 .expo-shared/
 *.swp
 
+# Dependencias adicionales (si usas bower u otros)
+/bower_components/
+
 # Android
-/android/app/src/main/res/raw
-/android/build/
 /android/app/build/
+/android/build/
 /android/.gradle/
 /android/local.properties
+/android/app/.cxx/
+# Si usas recursos en raw y NO quieres trackearlos, descomenta la siguiente línea:
+/android/app/src/main/res/raw
 **/captures/
+# Archivos de keystore (ajusta el patrón según corresponda)
+*.jks
 
 # iOS
 /ios/build/
 /ios/Pods/
+/ios/DerivedData/
 
 # Xcode
 *.xcworkspace
 *.xcuserstate
 *.xcuserdatad
 
-# Misc
-.DS_Store
-.idea/
+# IDE & Editor
+/.idea/
+/.vscode/
 *.iml
-# Ignorar certificados sensibles en assets (ajusta según corresponda)
-android/app/.cxx/tools/debug/
+
+# Archivos generados por el sistema operativo
+.DS_Store
+Thumbs.db
