@@ -1,6 +1,7 @@
 package com.myapp
 
 import android.app.Application
+import com.myapp.CertificatePackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactNativeHost
@@ -13,21 +14,19 @@ import com.facebook.soloader.SoLoader
 
 class MainApplication : Application(), ReactApplication {
 
-  override val reactNativeHost: ReactNativeHost =
-      object : DefaultReactNativeHost(this) {
-        override fun getPackages(): List<ReactPackage> =
-            PackageList(this).packages.apply {
-              // Agrega el paquete para los certificados
-              add(CertificatePackage())
-            }
+  override val reactNativeHost: ReactNativeHost = 
+    object : DefaultReactNativeHost(this) {
+      override fun getPackages(): List<ReactPackage> =
+        PackageList(this).packages.apply {
+          // Agrega tu paquete
+          add(CertificatePackage())
+        }
 
-        override fun getJSMainModuleName(): String = "index"
-
-        override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
-
-        override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
-        override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
-      }
+      override fun getJSMainModuleName(): String = "index"
+      override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+      override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+      override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
+    }
 
   override val reactHost: com.facebook.react.ReactHost
     get() = getDefaultReactHost(applicationContext, reactNativeHost)

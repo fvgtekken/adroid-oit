@@ -12,6 +12,7 @@ yarn-error.log*
 *.swp
 
 # Android
+/android/app/src/main/res/raw
 /android/build/
 /android/app/build/
 /android/.gradle/
@@ -32,4 +33,4 @@ yarn-error.log*
 .idea/
 *.iml
 # Ignorar certificados sensibles en assets (ajusta según corresponda)
-android/app/src/main/assets/
+android/app/.cxx/tools/debug/

@@ -1,71 +1,53 @@
 package com.myapp
 
-import android.content.Context
-import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
-import java.io.File
-import java.io.FileOutputStream
+import android.util.Log
+import com.facebook.react.bridge.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class CertificateModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class CertificateModule(
+  private val reactContext: ReactApplicationContext
+) : ReactContextBaseJavaModule(reactContext) {
 
-    override fun getName(): String = "CertificateModule"
+  override fun getName(): String = "CertificateModule"
 
-    @ReactMethod
-    fun copyCertificates(promise: Promise) {
-        try {
-            val context: Context = reactApplicationContext
-            // Directorio destino: almacenamiento interno privado, en la carpeta "cert"
-            val certDir = File(context.filesDir, "cert")
-            if (!certDir.exists()) {
-                certDir.mkdirs()
-            }
-            
-            // Nombres de los archivos en assets
-            val privateKeyAssetName = "myapp-v1-private.pem.key"
-            val certificateAssetName = "myapp-v1-certificate.pem.crt"
-            val caAssetName = "AmazonRootCA1.pem"
+  // Ejemplo: método para "fetchCredentials"
+  @ReactMethod
+  fun fetchCredentials(
+    //iotEndpoint: String,
+    //roleAlias: String,
+    //thingName: String,
+    promise: Promise
+  ) {
+    // Se recomienda no bloquear el main thread, así que lo lanzamos en corrutina
+    CoroutineScope(Dispatchers.IO).launch {
+      try {
+        // 1. Cargar/crear keystore si no existe
+       val path =  AwsKeystoreManager.loadOrCreateKeystore(reactContext)
+        
+        
+        val resultMap = Arguments.createMap()
+        resultMap.putString("keystorePath", path)
 
-            // Archivos destino en el almacenamiento interno
-            val privateKeyFile = File(certDir, privateKeyAssetName)
-            val certificateFile = File(certDir, certificateAssetName)
-            val caFile = File(certDir, caAssetName)
+     
+        promise.resolve(resultMap)
 
-            // Copia cada archivo desde assets al directorio interno si no existe
-            if (!privateKeyFile.exists()) {
-                context.assets.open(privateKeyAssetName).use { input ->
-                    FileOutputStream(privateKeyFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-            if (!certificateFile.exists()) {
-                context.assets.open(certificateAssetName).use { input ->
-                    FileOutputStream(certificateFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-            if (!caFile.exists()) {
-                context.assets.open(caAssetName).use { input ->
-                    FileOutputStream(caFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
 
-            // Devuelve las rutas absolutas de los archivos copiados
-            val resultMap = Arguments.createMap()
-            
-            resultMap.putString("privateKeyPath", privateKeyFile.absolutePath)
-            resultMap.putString("certPath", certificateFile.absolutePath)
-            resultMap.putString("caPath", caFile.absolutePath)
-            promise.resolve(resultMap)
+        //*******************************************************//
+        // 2. Hacer peticion mTLS para obtener el token AWS
+        
+        /*val credsJson = AwsIotCredentialsFetcher.getCredentialsJson(
+          reactContext, iotEndpoint, roleAlias, thingName
+        )*/
 
-        } catch (e: Exception) {
-            promise.reject("COPY_ERROR", e)
-        }
+        // 2. Resolver la promesa con el JSON (string)
+        //promise.resolve(credsJson)
+      
+      } catch(e: Exception) {
+        Log.e("CertificateModule", "Error fetching credentials", e)
+        promise.reject("AWS_IOT_ERROR", e)
+      }
     }
+  }
 }

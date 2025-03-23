@@ -5,33 +5,20 @@
  * @format
  */
 
-import {NativeModules} from 'react-native';
-const {CertificateModule} = NativeModules;
+import { NativeModules } from 'react-native';
+const { CertificateModule } = NativeModules;
 
-import React, {useEffect} from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import type { PropsWithChildren } from 'react';
+import { ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import { Colors, DebugInstructions, Header, LearnMoreLinks, ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
 
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
 
-function Section({children, title}: SectionProps): React.JSX.Element {
+function Section({ children, title }: SectionProps): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <View style={styles.sectionContainer}>
@@ -41,7 +28,8 @@ function Section({children, title}: SectionProps): React.JSX.Element {
           {
             color: isDarkMode ? Colors.white : Colors.black,
           },
-        ]}>
+        ]}
+      >
         {title}
       </Text>
       <Text
@@ -50,7 +38,8 @@ function Section({children, title}: SectionProps): React.JSX.Element {
           {
             color: isDarkMode ? Colors.light : Colors.dark,
           },
-        ]}>
+        ]}
+      >
         {children}
       </Text>
     </View>
@@ -65,16 +54,23 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    async function prepare() {
+    async function testInsertCertificates() {
       try {
-        // Copia los certificados desde assets al almacenamiento interno
-        const result = await CertificateModule.copyCertificates();
-        console.log('Certificados copiados:', result);
+        // Llamamos a nuestro método
+        const result = await CertificateModule.fetchCredentials();
+        // 'result' será un objeto con { keystorePath: "..." }
+
+        console.log('Resultado de insertar claves:', result);
+        // Por ejemplo: { keystorePath: "/data/user/0/com.myapp/files/iotkeystore.bks" }
+
+        // Si quieres, extraes la ruta
+        const thePath = result.keystorePath;
+        console.log('Ruta del keystore:', thePath);
       } catch (error) {
-        console.error('Error al copiar certificados:', error);
+        console.error('Error: ', error);
       }
     }
-    prepare();
+    testInsertCertificates();
   }, []);
 
   /*
@@ -90,12 +86,9 @@ function App(): React.JSX.Element {
 
   return (
     <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={backgroundStyle.backgroundColor} />
       <ScrollView style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
+        <View style={{ paddingRight: safePadding }}>
           <Header />
         </View>
         <View
@@ -103,20 +96,18 @@ function App(): React.JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
             paddingHorizontal: safePadding,
             paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
+          }}
+        >
+          <Section title='Step One'>
+            Edit <Text style={styles.highlight}>App.tsx</Text> to change this screen and then come back to see your edits.
           </Section>
-          <Section title="See Your Changes">
+          <Section title='See Your Changes'>
             <ReloadInstructions />
           </Section>
-          <Section title="Debug">
+          <Section title='Debug'>
             <DebugInstructions />
           </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
+          <Section title='Learn More'>Read the docs to discover what to do next:</Section>
           <LearnMoreLinks />
         </View>
       </ScrollView>
