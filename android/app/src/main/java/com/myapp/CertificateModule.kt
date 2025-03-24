@@ -31,18 +31,22 @@ class CertificateModule(
         resultMap.putString("keystorePath", path)
 
      
-        promise.resolve(resultMap)
+        //promise.resolve(resultMap)
 
 
         //*******************************************************//
         // 2. Hacer peticion mTLS para obtener el token AWS
-        
-        /*val credsJson = AwsIotCredentialsFetcher.getCredentialsJson(
+
+        val iotEndpoint:String = "2gk5twytvp3ah.credentials.iot.sa-east-1.amazonaws.com";
+        val roleAlias:String = "myapp-iot-role"
+        val thingName:String = "myapp-v1"
+
+        val credsJson = AwsIotCredentialsFetcher.getCredentialsJson(
           reactContext, iotEndpoint, roleAlias, thingName
-        )*/
+        )
 
         // 2. Resolver la promesa con el JSON (string)
-        //promise.resolve(credsJson)
+        promise.resolve(credsJson)
       
       } catch(e: Exception) {
         Log.e("CertificateModule", "Error fetching credentials", e)
