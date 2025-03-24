@@ -37,9 +37,9 @@ class CertificateModule(
         //*******************************************************//
         // 2. Hacer peticion mTLS para obtener el token AWS
 
-        //val iotEndpoint:String = "2gk5twytvp3ah.credentials.iot.sa-east-1.amazonaws.com";
-        //val roleAlias:String = "myapp-iot-role"
-        //val thingName:String = "myapp-v1"
+        //val iotEndpoint:String = "id.credentials.iot.sa-east-1.amazonaws.com";
+        //val roleAlias:String = "name-iot-role"
+        //val thingName:String = "thing-name"
 
         /*val credsJson = AwsIotCredentialsFetcher.getCredentialsJson(
           reactContext, iotEndpoint, roleAlias, thingName
