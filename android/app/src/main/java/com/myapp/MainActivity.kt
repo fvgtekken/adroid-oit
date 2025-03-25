@@ -12,6 +12,8 @@ class MainActivity : ReactActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        System.setProperty("javax.net.debug", "ssl,handshake")
+        System.setProperty("javax.net.debug", "all")
         // Genera la clave en el Android Keystore si aún no existe
        
     }

@@ -58,14 +58,9 @@ function App(): React.JSX.Element {
       try {
         // Llamamos a nuestro método
         const result = await CertificateModule.fetchCredentials();
-        // 'result' será un objeto con { keystorePath: "..." }
 
-        console.log('Resultado de insertar claves:', result);
+        console.log('Resultado AWS JSON Credentials', result);
         // Por ejemplo: { keystorePath: "/data/user/0/com.myapp/files/iotkeystore.bks" }
-
-        // Si quieres, extraes la ruta
-        const thePath = result.keystorePath;
-        console.log('Ruta del keystore:', thePath);
       } catch (error) {
         console.error('Error: ', error);
       }
