@@ -1,16 +1,18 @@
-package com.myapp
+import com.myapp.R
 import android.content.Context
-import java.security.KeyStore
-import com.amazonaws.mobileconnectors.iot.AWSIotKeystoreHelper
+import android.content.res.Resources
+import android.util.Log
 import java.io.BufferedReader
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
 import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
+import java.security.KeyStore
 import java.security.cert.CertificateFactory
 
 
@@ -23,19 +25,16 @@ object AwsIotCredentialsFetcher {
         roleAlias: String,
         thingName: String
     ): String {
-        
-        // 1) Cargar keystore con nuestro cert y key
-        val keystorePath = context.filesDir.absolutePath
-        val clientKeyStore: KeyStore = AWSIotKeystoreHelper.getIotKeystore(
-        "my_iot_cert",
-        keystorePath,
-        "iotkeystore",
-        "iotpasswd"
-        )
+        // 1) Cargar keystore desde el archivo .p12
+        val keystorePath = AwsKeystoreManager.loadOrCreateKeystore(context)
+        val keyStore = KeyStore.getInstance("PKCS12")
+        FileInputStream(keystorePath).use { fis ->
+            keyStore.load(fis, "iotpasswd".toCharArray())
+        }
 
         // 2) Configurar KeyManagerFactory con tu certificate & key
         val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-        kmf.init(clientKeyStore, "iotpasswd".toCharArray())
+        kmf.init(keyStore, "iotpasswd".toCharArray())
 
         // 3) Cargar AmazonRootCA1.pem desde res/raw
         val caInput = context.resources.openRawResource(R.raw.amazonrootca1)
@@ -44,10 +43,10 @@ object AwsIotCredentialsFetcher {
 
         // 4) Crear un KeyStore vacío y agregar la CA de Amazon
         val trustStore = KeyStore.getInstance(KeyStore.getDefaultType())
-        trustStore.load(null, null) // keystore en blanco
+        trustStore.load(null, null)
         trustStore.setCertificateEntry("AmazonRootCA1", caCert)
 
-        // 5) Inicializar el TrustManagerFactory con ese trustStore (sin re-cargar)
+        // 5) Inicializar el TrustManagerFactory con ese trustStore
         val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         tmf.init(trustStore)
 
