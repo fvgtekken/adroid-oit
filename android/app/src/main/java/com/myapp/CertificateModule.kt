@@ -12,40 +12,88 @@ class CertificateModule(
 ) : ReactContextBaseJavaModule(reactContext) {
 
   override fun getName(): String = "CertificateModule"
+   
 
+  // React Fetch Credentials
+  /***************************************************************************/ 
   @ReactMethod
-  fun fetchCredentials(promise: Promise) {
+   fun fetchCredentials(promise: Promise) {
+    
     CoroutineScope(Dispatchers.IO).launch {
-      try {
-        // 1. Cargar/crear keystore si no existe
-        val path = AwsKeystoreManager.loadOrCreateKeystore(reactContext)
-        val resultMap = Arguments.createMap()
-        resultMap.putString("keystorePath", path)
+        try {
+            val context = reactContext
 
-        // 2. Llamada a getSSLContext para obtener el SSLContext configurado
-        val sslContext = getSSLContext(reactContext)
-        if (sslContext == null) {
-          throw Exception("Error initializing SSLContext")
-        } else {
-          Log.i("CertificateModule", "SSLContext initialized successfully")
+            // 1. Crear clave si no existe
+            val created = SecureKeyManager.ensureKeyExists(context)
+            if (!created) {
+                throw Exception("Error creando clave en AndroidKeyStore")
+            }
+
+            // 2. Obtener certificado generado por el sistema
+            val cert = SecureKeyManager.getCertificate()
+            if (cert != null) {
+                Log.i("CertificateModule", "✅ Certificado generado:")
+                Log.i("CertificateModule", cert.toString())
+                promise.resolve(cert.toString())
+            } else {
+                throw Exception("No se pudo obtener el certificado")
+            }
+
+        } catch (e: Exception) {
+            Log.e("CertificateModule", "Error en KeyStore", e)
+            promise.reject("ANDROID_KEYSTORE_ERROR", e)
         }
-
-        // 3. Procede a la petición mTLS para obtener el token AWS
-        val iotEndpoint: String = "https://c2gk5twytvp3ah.credentials.iot.sa-east-1.amazonaws.com"
-        val roleAlias: String = "myapp-iot-role"
-        val thingName: String = "myapp-v1"
-
-        // Supón que AwsIotCredentialsFetcher.getCredentialsJson utiliza el SSLContext configurado
-        val credsJson = AwsIotCredentialsFetcher.getCredentialsJson(
-          reactContext, iotEndpoint, roleAlias, thingName
-        )
-
-        promise.resolve(credsJson)
-      
-      } catch(e: Exception) {
-        Log.e("CertificateModule", "Error fetching credentials", e)
-        promise.reject("AWS_IOT_ERROR", e)
-      }
     }
   }
+
+
+  // React export public certificate
+  /***************************************************************************/ 
+    @ReactMethod
+    fun exportCertificate(promise: Promise) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val certPath = SecureKeyManager.exportCertificateToPemFile(reactContext)
+                if (certPath != null) {
+                    promise.resolve(certPath) // 👍 Pasamos ruta a JS
+                } else {
+                    throw Exception("No se pudo exportar el certificado.")
+                }
+            } catch (e: Exception) {
+                promise.reject("EXPORT_ERROR", e)
+            }
+        }
+    }
+
+
+
+  // React Fetch  get fingerprint
+  /***************************************************************************/ 
+    @ReactMethod
+    fun getCertificateFingerprint(promise: Promise) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val fingerprint = SecureKeyManager.getCertificateFingerprint(reactContext)
+                promise.resolve(fingerprint)
+            } catch (e: Exception) {
+                promise.reject("FINGERPRINT_ERROR", e)
+            }
+        }
+    }
+
+
+    // React generateCsr
+    /***************************************************************************/ 
+    @ReactMethod
+    fun generateCsr(promise: Promise) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val path = SecureKeyManager.generateCsr(reactContext)
+                promise.resolve(path)
+            } catch (e: Exception) {
+                promise.reject("CSR_ERROR", e)
+            }
+        }
+    }
+
 }

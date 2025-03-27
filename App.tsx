@@ -56,11 +56,21 @@ function App(): React.JSX.Element {
   useEffect(() => {
     async function testInsertCertificates() {
       try {
-        // Llamamos a nuestro método
+        // Insertamos u obtenemos los certificados
         const result = await CertificateModule.fetchCredentials();
+        console.log('Resultado certificado KeyStore', result);
 
-        console.log('Resultado AWS JSON Credentials', result);
-        // Por ejemplo: { keystorePath: "/data/user/0/com.myapp/files/iotkeystore.bks" }
+        const resultCsrPath = await CertificateModule.generateCsr();
+        console.log('📄 CSR exportado en:', resultCsrPath);
+
+        // exportamos la clave publica para importar en amazon
+        //const resultExport = await CertificateModule.exportCertificate();
+        //console.log('Exported at path:', resultExport);
+
+        // Obtenemos el finger Print de la clave Publica para saber que estamos
+        // lidiando con el mismo certificado que vamos a importar en aws
+        //const fingerprint = await CertificateModule.getCertificateFingerprint();
+        //console.log('🔐 Fingerprint desde KeyStore:', fingerprint);
       } catch (error) {
         console.error('Error: ', error);
       }
