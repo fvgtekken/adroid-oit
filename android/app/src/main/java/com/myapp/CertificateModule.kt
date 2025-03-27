@@ -6,6 +6,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.myapp.getSSLContext  // Importa la función getSSLContext desde SSLContextUtil.kt
+import java.io.File
+import javax.net.ssl.SSLContext
 
 class CertificateModule(
   private val reactContext: ReactApplicationContext
@@ -95,5 +97,47 @@ class CertificateModule(
             }
         }
     }
+
+
+   // React fetchCredentialsWithSignedCert
+    /***************************************************************************/ 
+   @ReactMethod
+    fun fetchCredentialsWithSignedCert(promise: Promise) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // 1. Construimos el SSLContext desde el archivo .p12 + CA
+                val sslContext = SecureKeyManager.buildSslContextFromP12(reactContext)
+
+
+                if (sslContext == null) {
+                    throw Exception("No se pudo construir el SSLContext con el certificado firmado")
+                }
+
+                // 2. Conectamos a AWS IoT con mTLS
+                val iotEndpoint: String = "https://c2gk5twytvp3ah.credentials.iot.sa-east-1.amazonaws.com"
+                val roleAlias: String = "myapp-iot-role"
+                val thingName: String = "myapp-v1"
+
+                val credsJson = AwsIotCredentialsFetcher.getCredentialsJsonWithSslContext(
+                    sslContext,
+                    iotEndpoint,
+                    roleAlias,
+                    thingName
+                )
+
+                SecureKeyManager.logKeyStoreStatus()
+
+
+                // 3. Resolvemos hacia JS con el JSON de credenciales
+                promise.resolve(credsJson)
+
+            } catch (e: Exception) {
+                Log.e("CertificateModule", "❌ Error con certificado firmado", e)
+                promise.reject("SIGNED_CERT_ERROR", e)
+            }
+        }
+    }
+
+
 
 }

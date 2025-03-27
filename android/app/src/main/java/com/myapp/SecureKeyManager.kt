@@ -6,13 +6,22 @@ import android.security.KeyPairGeneratorSpec
 import android.util.Base64
 import android.util.Log
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.StringWriter
 import java.math.BigInteger
 import java.security.*
+import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.*
 import javax.security.auth.x500.X500Principal
+import javax.net.ssl.*
+import java.security.KeyStore
+import java.security.KeyPair
+import java.security.KeyPairGenerator
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.SSLContext
 
 // Para generar CSR con BouncyCastle
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
@@ -36,7 +45,6 @@ object SecureKeyManager {
    // Checks if certificates exists
     /*************************************************/ 
     /*************************************************/ 
-
     fun ensureKeyExists(context: Context): Boolean {
 
         return try {
@@ -199,6 +207,126 @@ object SecureKeyManager {
         }
     }
 
+    fun buildSslContextWithSignedCert(context: Context): SSLContext {
+    try {
+        val alias = "my_secure_iot_key"
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+
+        val entry = keyStore.getEntry(alias, null) as? KeyStore.PrivateKeyEntry
+            ?: throw Exception("❌ Clave privada no encontrada en AndroidKeyStore para alias: $alias")
+
+        val privateKey = entry.privateKey
+        Log.i("SecureKeyManager", "🔑 Clave privada encontrada en KeyStore con alias $alias")
+
+        // 1. Cargar certificado firmado por AWS
+        val certFile = File(context.filesDir, "myapp-aws-pem.crt")
+        if (!certFile.exists()) throw Exception("❌ Certificado firmado NO encontrado: ${certFile.absolutePath}")
+
+        val certFactory = CertificateFactory.getInstance("X.509")
+        val awsCert = certFactory.generateCertificate(certFile.inputStream()) as X509Certificate
+        Log.i("SecureKeyManager", "📄 Certificado firmado cargado correctamente")
+
+        // 2. Crear KeyStore temporal
+        val tempKeyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+        tempKeyStore.load(null)
+        tempKeyStore.setKeyEntry(alias, privateKey, "".toCharArray(), arrayOf(awsCert))
+
+        Log.i("SecureKeyManager", "✅ KeyStore temporal con clave + cert listo")
+
+        // 3. Inicializar KeyManagerFactory
+        val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+        kmf.init(tempKeyStore, null)
+        Log.i("SecureKeyManager", "✅ KeyManagerFactory inicializado")
+
+        // 4. Cargar la CA de Amazon
+        val caFile = File(context.filesDir, "AmazonRootCA1.pem")
+        if (!caFile.exists()) throw Exception("❌ CA AmazonRootCA1.pem no encontrada: ${caFile.absolutePath}")
+
+        val caCert = certFactory.generateCertificate(caFile.inputStream())
+        Log.i("SecureKeyManager", "📄 AmazonRootCA1.pem cargado correctamente")
+
+        val trustStore = KeyStore.getInstance(KeyStore.getDefaultType())
+        trustStore.load(null)
+        trustStore.setCertificateEntry("AmazonRootCA1", caCert)
+
+        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        tmf.init(trustStore)
+        Log.i("SecureKeyManager", "✅ TrustManagerFactory inicializado")
+
+        // 6. Crear SSLContext
+        val sslContext = SSLContext.getInstance("TLS")
+        sslContext.init(kmf.keyManagers, tmf.trustManagers, null)
+        Log.i("SecureKeyManager", "🎉 SSLContext configurado correctamente")
+
+        return sslContext
+
+    } catch (e: Exception) {
+        Log.e("SecureKeyManager", "❌ Error en buildSslContextWithSignedCert", e)
+        throw e
+    }
+}
+
+  fun buildSslContextFromP12(context: Context): SSLContext {
+         try {
+            val p12File = File(context.filesDir, "myapp-iot-client.p12")
+            val caFile = File(context.filesDir, "AmazonRootCA1.pem")
+
+            // Misma pass que usaste al generar el .p12
+
+            // 1. Cargar KeyStore desde el archivo .p12
+            val keyStore = KeyStore.getInstance("PKCS12")
+             val password = "myapp-password".toCharArray() 
+            keyStore.load(p12File.inputStream(), password)
+
+            val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+            kmf.init(keyStore, password)
+
+            // 2. Cargar la CA
+            val caInputStream = caFile.inputStream()
+            val certFactory = CertificateFactory.getInstance("X.509")
+            val caCert = certFactory.generateCertificate(caInputStream)
+
+            val trustStore = KeyStore.getInstance(KeyStore.getDefaultType())
+            trustStore.load(null)
+            trustStore.setCertificateEntry("ca", caCert)
+
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+            tmf.init(trustStore)
+
+            // 3. Crear el SSLContext con ambos
+            val sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(kmf.keyManagers, tmf.trustManagers, null)
+
+            Log.i("SecureKeyManager", "✅ SSLContext desde P12 creado correctamente")
+            return sslContext
+
+        } catch (e: Exception) {
+            Log.e("SecureKeyManager", "❌ Error creando SSLContext desde P12", e)
+            throw e
+        }
+    }
+
+fun logKeyStoreStatus() {
+    try {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+
+        val aliases = keyStore.aliases().toList()
+        Log.i("SecureKeyManager", "🔐 Claves en AndroidKeyStore: $aliases")
+
+        val alias = "my_secure_iot_key"
+        if (keyStore.containsAlias(alias)) {
+            val privateKey = keyStore.getKey(alias, null)
+            Log.i("SecureKeyManager", "✅ Se encontró y cargó la clave privada con alias $alias: $privateKey")
+        } else {
+            Log.e("SecureKeyManager", "❌ No se encontró el alias $alias en AndroidKeyStore")
+        }
+
+    } catch (e: Exception) {
+        Log.e("SecureKeyManager", "❌ Error al acceder al AndroidKeyStore", e)
+    }
+}
 
 
 }

@@ -54,14 +54,17 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    async function testInsertCertificates() {
+    async function testCertificates() {
       try {
         // Insertamos u obtenemos los certificados
-        const result = await CertificateModule.fetchCredentials();
-        console.log('Resultado certificado KeyStore', result);
+        //const result = await CertificateModule.fetchCredentials();
+        //console.log('Resultado certificado KeyStore', result);
 
-        const resultCsrPath = await CertificateModule.generateCsr();
-        console.log('📄 CSR exportado en:', resultCsrPath);
+        // const resultCsrPath = await CertificateModule.generateCsr();
+        //console.log('📄 CSR exportado en:', resultCsrPath);
+
+        const creds = await CertificateModule.fetchCredentialsWithSignedCert();
+        console.log('🔐 Credenciales con certificado firmado:', creds);
 
         // exportamos la clave publica para importar en amazon
         //const resultExport = await CertificateModule.exportCertificate();
@@ -75,7 +78,7 @@ function App(): React.JSX.Element {
         console.error('Error: ', error);
       }
     }
-    testInsertCertificates();
+    testCertificates();
   }, []);
 
   /*
