@@ -16,10 +16,26 @@ class MainActivity : ReactActivity() {
         System.setProperty("javax.net.debug", "all")
         // Genera la clave en el Android Keystore si aún no existe
        
+       if (shouldInstallCertificate()) {
+            KeyChainInstaller.installP12FromSdcard(this, this, "myapp-iot-client.p12")
+        }
     }
 
     override fun getMainComponentName(): String = "myApp"
 
     override fun createReactActivityDelegate(): ReactActivityDelegate =
         DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+
+    
+    private fun shouldInstallCertificate(): Boolean {
+
+        val prefs = getSharedPreferences("myapp_prefs", MODE_PRIVATE)
+        val alreadyInstalled = prefs.getBoolean("cert_installed", false)
+        
+        if (!alreadyInstalled) {
+            prefs.edit().putBoolean("cert_installed", true).apply()
+            return true
+        }
+        return false
+    }
 }
