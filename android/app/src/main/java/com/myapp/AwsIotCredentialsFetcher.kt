@@ -37,7 +37,7 @@ object AwsIotCredentialsFetcher {
         kmf.init(keyStore, "iotpasswd".toCharArray())
 
         // 3) Cargar AmazonRootCA1.pem desde res/raw
-        val caInput = context.resources.openRawResource(R.raw.amazonrootca1)
+        val caInput = context.assets.open("AmazonRootCA1.pem")
         val cf = CertificateFactory.getInstance("X.509")
         val caCert = cf.generateCertificate(caInput)
 

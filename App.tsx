@@ -54,31 +54,16 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    async function testCertificates() {
+    const getCreds = async () => {
       try {
-        // Insertamos u obtenemos los certificados
-        //const result = await CertificateModule.fetchCredentials();
-        //console.log('Resultado certificado KeyStore', result);
-
-        // const resultCsrPath = await CertificateModule.generateCsr();
-        //console.log('📄 CSR exportado en:', resultCsrPath);
-
         const creds = await CertificateModule.fetchCredentialsWithSignedCert();
-        console.log('🔐 Credenciales con certificado firmado:', creds);
-
-        // exportamos la clave publica para importar en amazon
-        //const resultExport = await CertificateModule.exportCertificate();
-        //console.log('Exported at path:', resultExport);
-
-        // Obtenemos el finger Print de la clave Publica para saber que estamos
-        // lidiando con el mismo certificado que vamos a importar en aws
-        //const fingerprint = await CertificateModule.getCertificateFingerprint();
-        //console.log('🔐 Fingerprint desde KeyStore:', fingerprint);
+        console.log('🔐 Credenciales con certificado:', creds);
       } catch (error) {
-        console.error('Error: ', error);
+        console.error('❌ Error al obtener credenciales:', error);
       }
-    }
-    testCertificates();
+    };
+
+    getCreds();
   }, []);
 
   /*
