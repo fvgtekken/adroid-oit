@@ -28,18 +28,22 @@ object KeyChainSslContextBuilder {
                 setKeyEntry(alias, privateKey, null, certChain)
             }
 
-            val keyManagerFactory = KeyManagerFactory.getInstance("X509")
+            // val keyManagerFactory = KeyManagerFactory.getInstance("X509")
+            val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+
+
             keyManagerFactory.init(keyStore, null)
 
             // Cargamos AmazonRootCA1.pem desde assets (o desde res/raw)
-            val caInput = context.assets.open("AmazonRootCA1.pem")
-            val caCert = CertificateFactory.getInstance("X.509").generateCertificate(caInput)
-            caInput.close()
-
             val trustStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
             load(null)
-            setCertificateEntry("amazon_root_ca", caCert)
+
+            context.assets.open("AmazonRootCA1.pem").use { caInput ->
+                val caCert = CertificateFactory.getInstance("X.509").generateCertificate(caInput)
+                setCertificateEntry("amazon_root_ca", caCert)
+                }
             }
+
 
             val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             trustManagerFactory.init(trustStore)

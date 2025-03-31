@@ -26,7 +26,6 @@ object KeyChainInstaller {
             }
 
             activity.startActivityForResult(intent, REQUEST_CODE)
-
             Log.i(TAG, "📦 Lanzado KeyChain install intent para $fileName desde sandbox")
 
         } catch (e: Exception) {

@@ -1,6 +1,7 @@
 package com.myapp
 
 import android.util.Log
+import android.security.KeyChain
 import com.facebook.react.bridge.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,49 +18,67 @@ class CertificateModule(
   fun fetchCredentialsWithSignedCert(promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
       try {
-        // Paso 1: Abrimos selector de alias del certificado instalado vía KeyChain
-        KeyChainLoader.chooseAlias(currentActivity!!) { alias ->
-          if (alias == null) {
-            Log.e("CertificateModule", "🚫 No se seleccionó alias de certificado")
-            promise.reject("NO_ALIAS", "No se seleccionó ningún certificado")
-            return@chooseAlias
+        val prefs = reactContext.getSharedPreferences("myapp_prefs", android.content.Context.MODE_PRIVATE)
+        val storedAlias = prefs.getString("cert_alias", null)
+
+        if (storedAlias != null) {
+          Log.i("CertificateModule", "✅ Alias reutilizado: $storedAlias")
+          buildAndFetchWithAlias(storedAlias, promise)
+        } else {
+          val activity = currentActivity
+          if (activity == null) {
+            Log.e("CertificateModule", "❌ currentActivity es null")
+            promise.reject("NO_ACTIVITY", "No se pudo obtener la actividad actual")
+            return@launch
           }
 
-          try {
-            Log.i("CertificateModule", "🔐 Alias seleccionado: $alias")
-
-            // Paso 2: Construimos el SSLContext con el alias seleccionado desde KeyChain
-            val sslContext = KeyChainSslContextBuilder.buildSSLContext(reactContext, alias)
-
-
-            if (sslContext == null) {
-              throw Exception("❌ No se pudo construir el SSLContext con KeyChain")
-            }
-
-            // Paso 3: Conectamos a AWS IoT con mTLS usando ese SSLContext
-            val iotEndpoint = "https://c2gk5twytvp3ah.credentials.iot.sa-east-1.amazonaws.com"
-            val roleAlias = "myapp-iot-role"
-            val thingName = "myapp-v1"
-
-            val credsJson = AwsIotCredentialsFetcher.getCredentialsJsonWithSslContext(
-              sslContext,
-              iotEndpoint,
-              roleAlias,
-              thingName
-            )
-
-            Log.i("CertificateModule", "✅ Credenciales obtenidas con KeyChain")
-            promise.resolve(credsJson)
-
-          } catch (inner: Exception) {
-            Log.e("CertificateModule", "🚨 Error con el certificado de KeyChain", inner)
-            promise.reject("KEYCHAIN_ERROR", inner)
-          }
+          KeyChain.choosePrivateKeyAlias(
+            activity,
+            { alias ->
+              if (alias == null) {
+                Log.e("CertificateModule", "❌ No se seleccionó alias")
+                promise.reject("NO_ALIAS", "No se seleccionó ningún certificado")
+              } else {
+                Log.i("CertificateModule", "🔐 Alias elegido: $alias")
+                prefs.edit().putString("cert_alias", alias).apply()
+                buildAndFetchWithAlias(alias, promise)
+              }
+            },
+            null, null, null, -1, null
+          )
         }
       } catch (e: Exception) {
         Log.e("CertificateModule", "❌ Error general con certificado firmado", e)
         promise.reject("SIGNED_CERT_ERROR", e)
       }
+    }
+  }
+
+  private fun buildAndFetchWithAlias(alias: String, promise: Promise) {
+    try {
+      val sslContext: SSLContext? = KeyChainSslContextBuilder.buildSSLContext(reactContext, alias)
+
+      if (sslContext == null) {
+        throw Exception("❌ No se pudo construir SSLContext con KeyChain")
+      }
+
+      val iotEndpoint = "https://c2gk5twytvp3ah.credentials.iot.sa-east-1.amazonaws.com"
+      val roleAlias = "myapp-iot-role"
+      val thingName = "myapp-v1"
+
+      val credsJson = AwsIotCredentialsFetcher.getCredentialsJsonWithSslContext(
+        sslContext,
+        iotEndpoint,
+        roleAlias,
+        thingName
+      )
+
+      Log.i("CertificateModule", "✅ Credenciales obtenidas con KeyChain")
+      promise.resolve(credsJson)
+
+    } catch (e: Exception) {
+      Log.e("CertificateModule", "🚨 Error en buildAndFetchWithAlias", e)
+      promise.reject("FETCH_ERROR", e)
     }
   }
 }

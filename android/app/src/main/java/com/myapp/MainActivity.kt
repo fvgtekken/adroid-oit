@@ -1,5 +1,6 @@
 package com.myapp
-
+import android.security.KeyChain
+import android.security.KeyChainAliasCallback
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -16,10 +17,10 @@ class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         System.setProperty("javax.net.debug", "ssl,handshake")
+        //getSharedPreferences("myapp_prefs", MODE_PRIVATE).edit().clear().apply()
 
-        if (shouldInstallCertificate()) {
+         if (shouldInstallCertificate()) {
             KeyChainInstaller.installP12FromAppFiles(this, this, "myapp-iot-client.p12")
-
         }
     }
 
@@ -50,21 +51,5 @@ class MainActivity : ReactActivity() {
             }
         }
     }
-
-
-    
-   /*override fun onResume() {
-       super.onResume()
-        KeyChainLoader.chooseAlias(this) { alias ->
-            if (alias != null) {
-                Log.i("MainActivity", "🎉 ¡Alias detectado! Vamos bien: $alias")
-                // 👉 Acá ya podrías usar el alias para construir el SSLContext
-            } else {
-                Log.e("MainActivity", "😢 No se encontró alias para el certificado.")
-            }
-        }
-    }*/
-
-
     
 }
