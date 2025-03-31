@@ -17,6 +17,11 @@ class CertificateModule(
   @ReactMethod
   fun fetchCredentialsWithSignedCert(promise: Promise) {
     CoroutineScope(Dispatchers.IO).launch {
+      
+    // Verifica si ya hay un alias de certificado guardado en SharedPreferences.
+    // Si existe, lo reutiliza directamente para evitar mostrar el selector de KeyChain.
+    // Si no existe, se asegura de tener una Activity activa  para poder lanzar el prompt de selección.
+
       try {
         val prefs = reactContext.getSharedPreferences("myapp_prefs", android.content.Context.MODE_PRIVATE)
         val storedAlias = prefs.getString("cert_alias", null)
@@ -62,6 +67,7 @@ class CertificateModule(
         throw Exception("❌ No se pudo construir SSLContext con KeyChain")
       }
 
+      // Esto deberia estar en variables de entorno.
       val iotEndpoint = "https://c2gk5twytvp3ah.credentials.iot.sa-east-1.amazonaws.com"
       val roleAlias = "myapp-iot-role"
       val thingName = "myapp-v1"

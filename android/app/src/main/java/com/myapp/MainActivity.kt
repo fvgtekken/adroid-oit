@@ -29,6 +29,8 @@ class MainActivity : ReactActivity() {
     override fun createReactActivityDelegate(): ReactActivityDelegate =
         DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
+
+
     private fun shouldInstallCertificate(): Boolean {
         val prefs = getSharedPreferences("myapp_prefs", MODE_PRIVATE)
         val alreadyInstalled = prefs.getBoolean("cert_installed", false)

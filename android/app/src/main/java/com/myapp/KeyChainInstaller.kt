@@ -12,6 +12,9 @@ object KeyChainInstaller {
 
     fun installP12FromAppFiles(context: Context, activity: Activity, fileName: String) {
         try {
+
+            // Accede al archivo .p12 ubicado en el sandbox privado de la app (/data/data/tuapp/files)
+            // Este directorio es seguro y accesible solo por la app, ideal para manejar archivos sensibles.
             val p12File = File(context.filesDir, fileName)
 
             if (!p12File.exists()) {

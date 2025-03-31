@@ -1,97 +1,88 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+Este proyecto integra React Native con código nativo Android para instalar certificados .p12 mediante la API KeyChain, y luego realizar una conexión mTLS segura con AWS IoT Core para obtener credenciales temporales.
 
-# Getting Started
+Archivos Kotlin y su propósito :
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+MainActivity.kt
+-Es la actividad principal de Android.
+-Verifica si el certificado ya fue instalado.
+-Si no está instalado, lanza el instalador del .p12 usando KeyChainInstaller.
+-Escucha el resultado con onActivityResult para marcar el certificado como instalado en SharedPreferences.
 
-## Step 1: Start Metro
+KeyChainInstaller.kt
+-Se encarga de lanzar la instalación del certificado .p12.
+-Lee el archivo .p12 desde la sandbox de la app (context.filesDir).
+-Usa KeyChain.createInstallIntent() para lanzar la ventana de instalación del certificado en Android.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+CertificateModule.kt
+-Módulo nativo expuesto a React Native como CertificateModule.
+-Implementa fetchCredentialsWithSignedCert(), el cual:
+-Usa un alias fijo o detectado para acceder al certificado instalado en el sistema.
+-Crea un SSLContext usando KeyChainSslContextBuilder.
+-Se conecta a AWS IoT Core y devuelve las credenciales a React Native.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+KeyChainSslContextBuilder.kt
+-Construye el SSLContext necesario para mTLS.
+-Obtiene la clave privada y cadena de certificados desde KeyChain (KeyChain.getPrivateKey y -getCertificateChain).
+-Carga el certificado raíz de Amazon (AmazonRootCA1.pem) desde assets.
+-Crea el SSLContext combinando los KeyManagers y TrustManagers.
 
-```sh
-# Using npm
-npm start
+AwsIotCredentialsFetcher.kt
+-Realiza la conexión HTTPS con mTLS hacia AWS IoT Core.
+-Usa el SSLContext para conectarse al endpoint de AWS con el rol, thingName y certificado.
+-Devuelve un JSON con las credenciales temporales (accessKeyId, secretAccessKey, sessionToken).
 
-# OR using Yarn
-yarn start
-```
+CertificatePackage.kt
+-Registra el módulo nativo.
+-Registra CertificateModule para que esté disponible desde el código JavaScript.
 
-## Step 2: Build and run your app
+🛠️ Flujo de ejecución resumido
+La app detecta si el certificado ya fue instalado.
+Si no lo fue, lo instala mediante la API de KeyChain.
+Desde React Native, se invoca el método fetchCredentialsWithSignedCert.
+Se construye un SSLContext con el alias del certificado instalado.
+Se realiza una conexión segura mTLS con AWS IoT Core.
+AWS valida el certificado y devuelve credenciales temporales (por política del rol configurado).
+Las credenciales son devueltas al frontend para su uso en la app.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+✅ Este enfoque es seguro porque la clave privada no está embebida en el código ni se maneja manualmente: queda protegida en el sistema operativo Android mediante el KeyChain.
 
-### Android
+Pasos para instalar el certificado empaquetado p12
+adb push myapp-iot-client.p12 /sdcard/
+adb shell
+run-as com.myapp
+cp /sdcard/myapp-iot-client.p12 files/
 
-```sh
-# Using npm
-npm run android
+🔴 Eliminar certificado Manualmente desde configuración del emulador/dispositivo
+🔁 Borrar flags locales adb shell pm clear com.myapp o .clear() en SharedPreferences
+📥 Copiar .p12 al emulador adb push myapp-iot-client.p12 /sdcard/
+📦 Moverlo al sandbox adb shell run-as com.myapp cp /sdcard/myapp-iot-client.p12 files/
+🚀 Abrir app App detecta que no hay certificado y lanza KeyChainInstaller
+🔐 Instalar certificado Aceptás el prompt, se instala como myapp-iot-client
+🧪 Alias App selecciona alias automáticamente o te deja elegir
+✅ mTLS Se conecta a AWS IoT y devuelve credencial
 
-# OR using Yarn
-yarn android
-```
+Borrado manual del certificado instalado
 
-### iOS
+Abrí Configuración en el emulador o dispositivo Android.
+Andá a:
+Seguridad > Cifrado y credenciales > Credenciales de usuario
+(en algunos dispositivos aparece como Credenciales instaladas)
+Tocá el certificado llamado myapp-iot-client.
+Tocá Eliminar.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+🚀 Comando para empaquetar los certificados que se crearon en aws.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+openssl pkcs12 -export \
+ -in aws-certificate.pem.crt \
+ -inkey aws-private.pem.key \
+ -certfile AmazonRootCA1.pem \
+ -name myapp-iot-client \
+ -out myapp-iot-client.p12 \
+ -legacy \
+ -passout pass:myapp-password
 
-```sh
-bundle install
-```
+Para antes de compilar dentro de la carpeta android en tu proyecto:
+./gradlew clean
 
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Para compilar los archivos kt:
+npx react-native run-android

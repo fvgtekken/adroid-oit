@@ -16,6 +16,9 @@ object KeyChainSslContextBuilder {
     fun buildSSLContext(context: Context, alias: String): SSLContext? {
         return try {
             val privateKey = KeyChain.getPrivateKey(context, alias)
+            
+            // Obtiene la cadena de certificados (incluye el certificado X.509 de la app y certificados intermedios si existen)
+            // Esta cadena se usará junto con la clave privada para autenticarse en la conexión mTLS.
             val certChain = KeyChain.getCertificateChain(context, alias)
 
             if (privateKey == null || certChain == null) {
@@ -23,18 +26,20 @@ object KeyChainSslContextBuilder {
                 return null
             }
 
+            // KeyStore en memoria con la clave privada y certificado del usuario, usado para mTLS.
             val keyStore = KeyStore.getInstance("PKCS12").apply {
                 load(null, null)
                 setKeyEntry(alias, privateKey, null, certChain)
             }
 
-            // val keyManagerFactory = KeyManagerFactory.getInstance("X509")
+            // Inicializamos el KeyManagerFactory con el KeyStore que contiene la clave privada y el certificado.
+            // Esto permite que el SSLContext use esta identidad para autenticación mTLS.
+
             val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-
-
+            // Pasamos null porque este KeyStore en memoria no tiene contraseña.
             keyManagerFactory.init(keyStore, null)
 
-            // Cargamos AmazonRootCA1.pem desde assets (o desde res/raw)
+            // Cargamos AmazonRootCA1.pem desde assets
             val trustStore = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
             load(null)
 
